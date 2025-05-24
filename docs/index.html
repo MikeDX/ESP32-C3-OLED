@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-C3 OLED Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 3em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .build-info {
+            background: #e8f4ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+        }
+
+        .btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature {
+            background: #f8f9ff;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .feature h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .feature p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .github-stats {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .nav-buttons {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ESP32-C3 OLED</h1>
+            <p>Beautiful OLED animations for ESP32-C3</p>
+        </div>
+
+        <div class="build-info" id="buildInfo">
+            <p>📦 <strong>Loading latest firmware...</strong></p>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="flasher.html" class="btn">⚡ Flash Firmware</a>
+            <a href="https://github.com/yourusername/ESP32-C3-OLED" class="btn secondary" target="_blank">📖 View Source</a>
+            <a href="https://github.com/yourusername/ESP32-C3-OLED/releases" class="btn secondary" target="_blank">📋 Releases</a>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🌐 Web Flasher</h3>
+                <p>Flash firmware directly from your browser using WebSerial API. No additional software required!</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🔄 Auto-Build</h3>
+                <p>Every commit automatically builds and deploys new firmware. Always get the latest features!</p>
+            </div>
+            
+            <div class="feature">
+                <h3>📱 OLED Display</h3>
+                <p>Beautiful animations and graphics optimized for ESP32-C3 with U8g2 library support.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>⚡ Fast Setup</h3>
+                <p>PlatformIO-based development with automatic dependency management and optimized builds.</p>
+            </div>
+        </div>
+
+        <div class="github-stats">
+            <h3>📊 Project Stats</h3>
+            <p>Check out the project on GitHub for the latest updates, issues, and contributions!</p>
+        </div>
+    </div>
+
+    <script>
+        // Load build information
+        fetch('./firmware/build-info.json')
+            .then(response => response.json())
+            .then(data => {
+                const buildDate = new Date(data.build_date).toLocaleString();
+                const buildInfo = document.getElementById('buildInfo');
+                buildInfo.innerHTML = `
+                    <p>📦 <strong>Latest Build:</strong> ${buildDate}</p>
+                    <p>🔨 <strong>Commit:</strong> ${data.commit_sha.substring(0, 7)} | <strong>Branch:</strong> ${data.branch} | <strong>Build #${data.run_number}</strong></p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error loading build info:', error);
+                document.getElementById('buildInfo').innerHTML = 
+                    '<p>📦 <strong>Firmware available</strong> - Click "Flash Firmware" to get started!</p>';
+            });
+
+        // Update GitHub links with actual username if needed
+        // This will be replaced when you update the URLs
+    </script>
+</body>
+</html> 

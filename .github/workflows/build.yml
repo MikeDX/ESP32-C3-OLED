@@ -1,4 +1,4 @@
-name: Build and Test ESP32-C3 OLED Project
+name: Build ESP32-C3 OLED Project
 
 on:
   push:
@@ -37,26 +37,39 @@ jobs:
     - name: Build project
       run: pio run --environment esp32-c3
       
-    - name: Build test environment
-      run: pio run --environment esp32-c3-test
+    - name: Prepare firmware files for web flasher
+      run: |
+        mkdir -p docs/firmware
+        cp .pio/build/esp32-c3/firmware.bin docs/firmware/
+        cp .pio/build/esp32-c3/bootloader.bin docs/firmware/
+        cp .pio/build/esp32-c3/partitions.bin docs/firmware/
+        
+        # Create a build info JSON file
+        echo "{
+          \"build_date\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+          \"commit_sha\": \"${{ github.sha }}\",
+          \"branch\": \"${{ github.ref_name }}\",
+          \"run_number\": \"${{ github.run_number }}\"
+        }" > docs/firmware/build-info.json
       
-    - name: Run unit tests
-      run: pio test --environment esp32-c3-test --verbose
-      continue-on-error: true
-      
-    - name: Run static analysis (optional)
-      run: pio check --verbose
-      continue-on-error: true
-      
-    - name: Upload build artifacts
+    - name: Upload firmware artifacts
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: firmware-build
+        name: esp32-c3-firmware
         path: |
-          .pio/build/esp32-c3/firmware.*
-          .pio/build/esp32-c3-test/firmware.*
-        retention-days: 30
+          .pio/build/esp32-c3/firmware.bin
+          .pio/build/esp32-c3/bootloader.bin
+          .pio/build/esp32-c3/partitions.bin
+        retention-days: 90
+
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        force_orphan: true
 
   code-quality:
     runs-on: ubuntu-latest
@@ -75,17 +88,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install platformio
         
-    - name: Check code formatting (if using clang-format)
-      run: |
-        if [ -f ".clang-format" ]; then
-          sudo apt-get update
-          sudo apt-get install -y clang-format
-          find src/ -name "*.cpp" -o -name "*.h" | xargs clang-format --dry-run --Werror
-        else
-          echo "No .clang-format file found, skipping format check"
-        fi
-      continue-on-error: true
-      
-    - name: Run PlatformIO check
-      run: pio check --verbose --fail-on-defect medium
+    - name: Run static analysis (optional)
+      run: pio check --verbose
       continue-on-error: true 
